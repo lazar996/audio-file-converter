@@ -25,7 +25,7 @@ app.post('/upload', upload.single('audio'), (req, res) => {
       .on('end', () => {
         res.download(outputFile, `${req.file.originalname.replace(/\.[^/.]+$/, '')}-converted.wav`, (err) => {
           if (err) {
-            console.error('Greška prilikom slanja fajla:', err);
+            console.error(err);
           }
           fs.unlink(inputFile, () => {});
           fs.unlink(outputFile, () => {});
