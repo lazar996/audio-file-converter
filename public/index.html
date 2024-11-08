@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio File Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+    }
+    #drop-zone {
+      border: 2px dashed #007bff;
+      padding: 50px;
+      width: 50%;
+      text-align: center;
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #download-button {
+      display: none;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Upload or Drag an Audio File</h1>
+  
+  <div id="drop-zone">Drag & Drop Audio File Here</div>
+  
+  <input type="file" id="file-input" accept=".mp3, .wav" />
+  <button id="upload-button">Upload Audio File</button>
+
+  <p id="status"></p>
+
+  <a href="#" id="download-button" download>Download Converted File</a>
+
+  <script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const status = document.getElementById('status');
+    const uploadButton = document.getElementById('upload-button');
+    const downloadButton = document.getElementById('download-button');
+    dropZone.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      dropZone.style.backgroundColor = '#e0e0ff';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.backgroundColor = '#f0f0f0';
+    });
+
+    dropZone.addEventListener('drop', (event) => {
+      event.preventDefault();
+      dropZone.style.backgroundColor = '#f0f0f0';
+      const files = event.dataTransfer.files;
+      if (files.length) {
+        handleFile(files[0]);
+      }
+    });
+    uploadButton.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (event) => {
+      if (event.target.files.length) {
+        handleFile(event.target.files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      if (file.type === 'audio/mp3' || file.type === 'audio/wav' || file.type === 'audio/mpeg') {
+        status.textContent = `Odabrani fajl: ${file.name}`;
+        uploadFile(file);
+      } else {
+        status.textContent = 'Molimo vas da postavite validan MP3 ili WAV fajl.';
+      }
+    }
+
+    function uploadFile(file) {
+      const formData = new FormData();
+      formData.append('audio', file);
+      status.textContent = 'Uploading and converting file...';
+
+      fetch('/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      .then(response => response.blob())
+      .then(blob => {
+        status.textContent = 'File converted successfully!';
+        const url = URL.createObjectURL(blob);
+        downloadButton.href = url;
+        downloadButton.download = file.name.replace(/\.[^/.]+$/, '') + '-converted.wav';
+        downloadButton.textContent = `Download Converted File`;
+        downloadButton.style.display = 'inline-block';
+      })
+      .catch(error => {
+        status.textContent = 'An error occurred during the upload or conversion process.';
+        console.error('Error:', error);
+      });
+    }
+  </script>
+
+</body>
+</html>
